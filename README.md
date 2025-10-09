@@ -16,8 +16,18 @@ pip install -r requirements.txt
 
 ### Running the Server
 
+**Option 1: Direct (for development)**
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Option 2: Docker (recommended for deployment)**
+```bash
+# Build the image
+docker build -t rag-translation .
+
+# Run the container
+docker run -p 8000:8000 rag-translation
 ```
 
 Server runs at: http://localhost:8000
