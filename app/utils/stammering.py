@@ -28,12 +28,20 @@ def detect_stammer(source_sentence: str, translated_sentence: str) -> bool:
     if re.search(r'(.)\1{5,}', trans_lower):
         return True
 
-    # Rule 2: Consecutive identical words (for words longer than 2 chars to avoid "a a")
-    for i in range(len(words) - 1):
+    # Rule 2: Consecutive identical words (3+ times indicates stammering)
+    # Allows natural doubles like "bye bye" but flags clear errors
+    i = 0
+    while i < len(words) - 2:
         word = words[i].strip('.,!?;:')
-        next_word = words[i + 1].strip('.,!?;:')
-        if word == next_word and len(word) > 2:
+        if len(word) <= 2:
+            i += 1
+            continue
+
+        # Check if word repeats 3+ times consecutively
+        if (words[i + 1].strip('.,!?;:') == word and
+            words[i + 2].strip('.,!?;:') == word):
             return True
+        i += 1
 
     # Rule 3: Consecutive identical bigrams (phrase repetition)
     if len(words) >= 4:

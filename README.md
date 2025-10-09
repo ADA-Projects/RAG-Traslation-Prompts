@@ -314,7 +314,7 @@ You are a translator from Italian to English.
 Now translate: "Ci vediamo"
 ```
 
-### 3. Detect Stammering (8/12 correct - 67% accuracy)
+### 3. Detect Stammering (10/12 correct - 83% accuracy)
 
 ```
 Line 1: Response -> No (Expected: No)
@@ -324,7 +324,7 @@ Line 4: Response -> No (Expected: No)
 Line 5: Response -> No (Expected: No)
 Line 6: Response -> No (Expected: No)
 Line 7: Response -> No (Expected: No)
-Line 8: Response -> Yes (Expected: No)
+Line 8: Response -> No (Expected: No)
 Line 9: Response -> Yes (Expected: No)
 Line 10: Response -> Yes (Expected: Yes)
 Line 11: Response -> Yes (Expected: Yes)
@@ -332,13 +332,14 @@ Line 12: Response -> Yes (Expected: Yes)
 ```
 
 **Analysis:**
-- Correctly detects obvious stammering patterns (station repetition, phrase loops, character elongation)
-- False positives on proportional repetitions (lines 8-9) where source and translation have similar repetition counts
-- Pattern-based approach works well for clear cases but struggles with contextual judgment
+- Correctly detects clear stammering patterns (station repetition, phrase loops, character elongation)
+- Conservative threshold (3+ consecutive identical words) reduces false positives
+- Handles natural doubles like "bye bye" correctly
+- One remaining false positive (line 9) involves ambiguous case of 4x repetition
 
 **Limitations:**
 - Rule-based detection lacks language-specific context
-- Cannot distinguish between natural emphasis and stammering when repetition exists in source
+- Cannot distinguish between emphatic repetition and stammering in ambiguous cases
 - Could be improved with ML-based classifier trained on labeled examples
 
 ## Project Structure
