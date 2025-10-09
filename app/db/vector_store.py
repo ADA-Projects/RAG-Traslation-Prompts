@@ -60,7 +60,11 @@ class VectorStore:
         target_language: str,
         n_results: int = 4
     ) -> List[Dict[str, str]]:
-        """Search for similar translation pairs.
+        """Search for similar translation pairs with bidirectional matching.
+
+        Translation pairs are considered bidirectional. For example, if the database
+        has en→it pairs, they can also be used for it→en queries by swapping the
+        source and target.
 
         Args:
             query_sentence: The sentence to find similar translations for
@@ -71,10 +75,10 @@ class VectorStore:
         Returns:
             List of dictionaries containing similar translation pairs
         """
-        # Query with language pair filtering
-        results = self.collection.query(
+        # Try direct match first
+        direct_results = self.collection.query(
             query_texts=[query_sentence],
-            n_results=n_results,
+            n_results=n_results * 2,  # Get more to have options after filtering
             where={
                 "$and": [
                     {"source_language": {"$eq": source_language}},
@@ -83,13 +87,47 @@ class VectorStore:
             }
         )
 
-        # Extract translation pairs from results
-        pairs = []
-        if results['metadatas'] and results['metadatas'][0]:
-            for metadata in results['metadatas'][0]:
-                pairs.append({
-                    "sentence": metadata["sentence"],
-                    "translation": metadata["translation"]
-                })
+        # Try reverse match (swap source and target languages)
+        reverse_results = self.collection.query(
+            query_texts=[query_sentence],
+            n_results=n_results * 2,
+            where={
+                "$and": [
+                    {"source_language": {"$eq": target_language}},
+                    {"target_language": {"$eq": source_language}}
+                ]
+            }
+        )
 
-        return pairs
+        # Combine results, prioritizing direct matches
+        pairs = []
+        seen_pairs = set()
+
+        # Add direct matches
+        if direct_results['metadatas'] and direct_results['metadatas'][0]:
+            for metadata in direct_results['metadatas'][0]:
+                pair_key = (metadata["sentence"], metadata["translation"])
+                if pair_key not in seen_pairs:
+                    pairs.append({
+                        "sentence": metadata["sentence"],
+                        "translation": metadata["translation"]
+                    })
+                    seen_pairs.add(pair_key)
+                if len(pairs) >= n_results:
+                    break
+
+        # Add reverse matches (swapped) if we need more
+        if len(pairs) < n_results and reverse_results['metadatas'] and reverse_results['metadatas'][0]:
+            for metadata in reverse_results['metadatas'][0]:
+                # Swap source and translation for reverse pairs
+                pair_key = (metadata["translation"], metadata["sentence"])
+                if pair_key not in seen_pairs:
+                    pairs.append({
+                        "sentence": metadata["translation"],  # Swapped
+                        "translation": metadata["sentence"]  # Swapped
+                    })
+                    seen_pairs.add(pair_key)
+                if len(pairs) >= n_results:
+                    break
+
+        return pairs[:n_results]

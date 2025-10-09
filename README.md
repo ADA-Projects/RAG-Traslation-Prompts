@@ -95,7 +95,10 @@ Detect stammering (non-natural repetition) in a translation.
 The system implements retrieval-augmented generation for translation prompts:
 
 1. **Storage:** Translation pairs are embedded using sentence-transformers and stored in ChromaDB with metadata (source/target languages)
-2. **Retrieval:** Query sentences are embedded and searched using cosine similarity, filtered by language pair
+2. **Retrieval:** Query sentences are embedded and searched using cosine similarity with bidirectional matching
+   - Direct matches: source_lang → target_lang pairs
+   - Reverse matches: target_lang → source_lang pairs (swapped for output)
+   - This allows en→it pairs to serve it→en queries and vice versa
 3. **Augmentation:** Top 4 similar pairs are formatted into a prompt for LLM translation
 
 ### Stammering Detection
@@ -316,10 +319,22 @@ Now translate: "Can you help me find the park?"
 Line 17: Received Translation Prompt.
 You are a translator from Italian to English.
 
+Here are some similar translation examples:
+- "Parli italiano?" → "Do you speak Italian?"
+- "Amo il cibo italiano." → "I love Italian food."
+- "Ho fame." → "I'm hungry."
+- "Amo la pizza." → "I love pizza."
+
 Now translate: "Che ore sono?"
 
 Line 18: Received Translation Prompt.
 You are a translator from Italian to English.
+
+Here are some similar translation examples:
+- "Parli italiano?" → "Do you speak Italian?"
+- "Amo il cibo italiano." → "I love Italian food."
+- "Di dove sei?" → "Where are you from?"
+- "Dov'è la stazione?" → "Where is the station?"
 
 Now translate: "Ci vediamo"
 ```
