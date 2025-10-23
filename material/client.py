@@ -1,11 +1,17 @@
 import requests
 import json
 
+import os
+
 BASE_URL = 'http://localhost:8000'
+
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 FILES = {
-    'translation_pairs': 'translation_pairs.jsonl',
-    'translation_requests': 'translation_requests.jsonl',
-    'stammering_tests': 'stammering_tests.jsonl'
+    'translation_pairs': os.path.join(SCRIPT_DIR, 'translation_pairs.jsonl'),
+    'translation_requests': os.path.join(SCRIPT_DIR, 'translation_requests.jsonl'),
+    'stammering_tests': os.path.join(SCRIPT_DIR, 'stammering_tests.jsonl')
 }
 
 

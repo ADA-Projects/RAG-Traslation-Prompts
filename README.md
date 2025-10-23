@@ -87,7 +87,7 @@ Detect stammering (non-natural repetition) in a translation.
 ### Technology Stack
 - **Framework:** FastAPI
 - **Vector Database:** ChromaDB (persistent storage)
-- **Embeddings:** sentence-transformers (all-MiniLM-L6-v2, 384 dimensions)
+- **Embeddings:** sentence-transformers (paraphrase-multilingual-MiniLM-L12-v2, 384 dimensions)
 - **Similarity Metric:** Cosine similarity
 
 ### Design
@@ -103,12 +103,12 @@ The system implements retrieval-augmented generation for translation prompts:
 
 ### Stammering Detection
 
-Pattern-based detection using four rules:
+Language-agnostic pattern-based detection using four rules:
 
 1. **Character elongation:** Detects 6+ repeated characters (e.g., "soooooo")
-2. **Consecutive words:** Identifies adjacent identical words >2 characters
-3. **Consecutive bigrams:** Detects repeated phrase patterns
-4. **Excessive repetition:** Flags disproportionate word frequency vs source
+2. **Consecutive words:** Identifies adjacent identical words >2 characters (checks source for legitimate repetition)
+3. **Consecutive bigrams:** Detects repeated phrase patterns (checks source for legitimate repetition)
+4. **Excessive repetition:** Compares repetition rates between source and translation (language-agnostic)
 
 ## Test Results
 
@@ -157,8 +157,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "Good evening!" → "Buonasera!"
 - "Good morning!" → "Buongiorno!"
-- "Hello, how are you?" → "Ciao, come stai?"
 - "See you tomorrow." → "Ci vediamo domani."
+- "See you later." → "Ci vediamo dopo."
 
 Now translate: "Good evening!"
 
@@ -168,8 +168,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "How's the weather today?" → "Com'è il tempo oggi?"
 - "How's the weather?" → "Com'è il tempo?"
-- "Hello, how are you?" → "Ciao, come stai?"
 - "See you tomorrow." → "Ci vediamo domani."
+- "What time is it?" → "Che ore sono?"
 
 Now translate: "How's the weather tomorrow?"
 
@@ -177,8 +177,8 @@ Line 4: Received Translation Prompt.
 You are a translator from English to Italian.
 
 Here are some similar translation examples:
-- "Hello, how are you?" → "Ciao, come stai?"
 - "How's the weather today?" → "Com'è il tempo oggi?"
+- "Hello, how are you?" → "Ciao, come stai?"
 - "How's the weather?" → "Com'è il tempo?"
 - "Good morning!" → "Buongiorno!"
 
@@ -201,8 +201,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "What's your name?" → "Come ti chiami?"
 - "Hello, how are you?" → "Ciao, come stai?"
-- "See you soon." → "A presto."
-- "See you later." → "Ci vediamo dopo."
+- "I'm hungry." → "Ho fame."
+- "I'm thirsty." → "Ho sete."
 
 Now translate: "What's my name?"
 
@@ -211,9 +211,9 @@ You are a translator from English to Italian.
 
 Here are some similar translation examples:
 - "Where are you from?" → "Di dove sei?"
-- "What's your name?" → "Come ti chiami?"
-- "How's the weather?" → "Com'è il tempo?"
 - "Hello, how are you?" → "Ciao, come stai?"
+- "What's your name?" → "Come ti chiami?"
+- "Do you speak Italian?" → "Parli italiano?"
 
 Now translate: "What's your hometown?"
 
@@ -245,8 +245,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "I love pizza." → "Amo la pizza."
 - "I love Italian food." → "Amo il cibo italiano."
-- "I'm hungry." → "Ho fame."
-- "I'm thirsty." → "Ho sete."
+- "Good evening!" → "Buonasera!"
+- "Where are you from?" → "Di dove sei?"
 
 Now translate: "I love music."
 
@@ -266,8 +266,8 @@ You are a translator from English to Italian.
 
 Here are some similar translation examples:
 - "Do you speak Italian?" → "Parli italiano?"
-- "I love Italian food." → "Amo il cibo italiano."
 - "Do you speak English?" → "Parli inglese?"
+- "I love Italian food." → "Amo il cibo italiano."
 - "Where are you from?" → "Di dove sei?"
 
 Now translate: "Do you speak German or Italian?"
@@ -289,8 +289,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "I'm hungry." → "Ho fame."
 - "I'm thirsty." → "Ho sete."
-- "I love pizza." → "Amo la pizza."
-- "I love Italian food." → "Amo il cibo italiano."
+- "How's the weather today?" → "Com'è il tempo oggi?"
+- "Hello, how are you?" → "Ciao, come stai?"
 
 Now translate: "I'm feeling hungry now."
 
@@ -300,8 +300,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "Where is the nearest station?" → "Dov'è la stazione più vicina?"
 - "Where is the station?" → "Dov'è la stazione?"
+- "Hello, how are you?" → "Ciao, come stai?"
 - "Where are you from?" → "Di dove sei?"
-- "Do you speak English?" → "Parli inglese?"
 
 Now translate: "Is there a library nearby?"
 
@@ -311,8 +311,8 @@ You are a translator from English to Italian.
 Here are some similar translation examples:
 - "Where is the station?" → "Dov'è la stazione?"
 - "Where is the nearest station?" → "Dov'è la stazione più vicina?"
-- "What time is it?" → "Che ore sono?"
-- "What is the time?" → "Che ore sono?"
+- "Hello, how are you?" → "Ciao, come stai?"
+- "Where are you from?" → "Di dove sei?"
 
 Now translate: "Can you help me find the park?"
 
@@ -320,10 +320,10 @@ Line 17: Received Translation Prompt.
 You are a translator from Italian to English.
 
 Here are some similar translation examples:
-- "Parli italiano?" → "Do you speak Italian?"
-- "Amo il cibo italiano." → "I love Italian food."
-- "Ho fame." → "I'm hungry."
-- "Amo la pizza." → "I love pizza."
+- "Che ore sono?" → "What time is it?"
+- "Che ore sono?" → "What is the time?"
+- "Com'è il tempo?" → "How's the weather?"
+- "Buonasera!" → "Good evening!"
 
 Now translate: "Che ore sono?"
 
@@ -331,15 +331,15 @@ Line 18: Received Translation Prompt.
 You are a translator from Italian to English.
 
 Here are some similar translation examples:
-- "Parli italiano?" → "Do you speak Italian?"
-- "Amo il cibo italiano." → "I love Italian food."
-- "Di dove sei?" → "Where are you from?"
-- "Dov'è la stazione?" → "Where is the station?"
+- "A presto." → "See you soon."
+- "Ci vediamo dopo." → "See you later."
+- "Ci vediamo domani." → "See you tomorrow."
+- "Ciao, come stai?" → "Hello, how are you?"
 
 Now translate: "Ci vediamo"
 ```
 
-### 3. Detect Stammering (10/12 correct - 83% accuracy)
+### 3. Detect Stammering (12/12 correct - 100% accuracy)
 
 ```
 Line 1: Response -> No (Expected: No)
@@ -350,22 +350,22 @@ Line 5: Response -> No (Expected: No)
 Line 6: Response -> No (Expected: No)
 Line 7: Response -> No (Expected: No)
 Line 8: Response -> No (Expected: No)
-Line 9: Response -> Yes (Expected: No)
+Line 9: Response -> No (Expected: No)
 Line 10: Response -> Yes (Expected: Yes)
 Line 11: Response -> Yes (Expected: Yes)
 Line 12: Response -> Yes (Expected: Yes)
 ```
 
 **Analysis:**
-- Correctly detects clear stammering patterns (station repetition, phrase loops, character elongation)
-- Conservative threshold (3+ consecutive identical words) reduces false positives
-- Handles natural doubles like "bye bye" correctly
-- One remaining false positive (line 9) involves ambiguous case of 4x repetition
+- Correctly detects all stammering patterns (station repetition, phrase loops, character elongation)
+- Successfully distinguishes legitimate source repetition from translation stammering
+- Handles proportional repetition (e.g., "ciao ciao ciao ciao" → "bye bye bye bye") correctly
+- Language-agnostic comparison of repetition patterns enables cross-language accuracy
 
-**Limitations:**
-- Rule-based detection lacks language-specific context
-- Cannot distinguish between emphatic repetition and stammering in ambiguous cases
-- Could be improved with ML-based classifier trained on labeled examples
+**Key Features:**
+- Rules 2-4 check source sentence for legitimate repetition patterns before flagging translation
+- Rule 4 compares maximum repetition counts rather than literal words across languages
+- Conservative thresholds minimize false positives while maintaining high detection accuracy
 
 ## Project Structure
 
@@ -400,4 +400,4 @@ ChromaDB stores data in `./chroma_db/` directory. This is excluded from git. The
 
 ### Similarity Search
 
-The all-MiniLM-L6-v2 model provides a good balance between speed and quality for semantic search. The model is automatically downloaded (90.9MB) on first server start.
+The paraphrase-multilingual-MiniLM-L12-v2 model provides multilingual semantic search capabilities across 50+ languages. The model is automatically downloaded on first server start and supports both monolingual and cross-lingual similarity matching.

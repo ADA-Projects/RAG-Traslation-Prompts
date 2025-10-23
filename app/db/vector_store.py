@@ -13,7 +13,7 @@ class VectorStore:
 
         # Use sentence-transformers embedding function
         self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
+            model_name="paraphrase-multilingual-MiniLM-L12-v2"
         )
 
         # Get or create collection

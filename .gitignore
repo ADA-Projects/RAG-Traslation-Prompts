@@ -209,7 +209,7 @@ __marimo__/
 
 # CLAUDE
 claude-helpers/
-CLAUDE.mm
+CLAUDE.md
 .claude/*
 
 # ChromaDB
